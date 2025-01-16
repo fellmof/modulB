@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>о нееет </title>
+</head>
+<body>
+    <canvas id="canvas" width="1000" height="500"></canvas>
+    <style>
+    body{
+        width: 100%;
+        height: 100%;
+        background-color: rgb(241, 196, 207);
+        margin: 0;
+    }
+    
+    canvas{
+        margin: 100px 250px 100px 250px;
+        display: block;
+        background-color: rgb(138, 192, 234);
+    }
+    </style>
+</body>
+<script>
+    let x1 = 0;
+    let x2 = 800;
+    let x3 = 350;
+    let x4 = 530;
+
+    let directx1 = 1;
+    let directx2 = 1;
+    let directx3 = 1;
+    let directy4 = -5;
+
+    let y1 = 100;
+    let y2 = 140;
+    let y3 = 180;
+    let y4 = 340;
+
+    let firstY1 = 120;
+    let firstY2 = 160;
+    let firstY3 = 200;
+
+    let firstX1 = 0;
+    let firstX2 = 800;
+    let firstX3 = 350;
+    
+    let gameSpeed = 5;
+
+    let gameover = false;
+    let score = 0;
+    let bullets = [];
+    let gameStarted = false;
+
+    // Цвета для прямоугольников
+    let colors = ["#6e0aaa", "#d9015c", "#9F3ED4", "#7A46D6", "#D7015F", "#B565D4", "#FFF373", "#5FC0CD"];
+    let colorIndex1 = 0;
+    let colorIndex2 = 1;
+    let colorIndex3 = 2;
+    let lastColorChangeTime = 0; // Время последнего изменения цвета
+    const colorChangeInterval = 1000; // 1 секунда
+
+    const canvas = document.getElementById("canvas");
+    const context = canvas.getContext("2d");   
+
+    // Загрузка изображений
+    const catImage = new Image();
+    catImage.src = 'https://sun1-17.userapi.com/s/v1/ig2/HnIdPMUr2Pv5lIyC2-LCI-yVAijqfxWlnn4OHreNqVCBslONiCP3PI6JTLaIPkhrolqmj-IenU8_S-5EnS6TufyC.jpg?size=810x810&quality=96&crop=0,20,810,810&ava=1://i.ibb.co/8D7gJ5P/cat-with-gun-removebg-preview.png'; // URL кота
+   
+    const gameoverImage = new Image();
+    gameoverImage.src = 'https://3fc4ed44-3fbc-419a-97a1-a29742511391.selcdn.net/coub_storage/coub/simple/cw_image/a08cc9a17e4/aaf35b31d05458092dbaa/1577622164_00032.jpg';
+
+    const gameOverSound = new Audio('oooo-net-moi-dom-vsio-propalo.mp3');
+
+    function start() {
+        context.fillStyle = "black";
+        context.fillRect(220, 170, 600, 80);
+        context.fillStyle = "rgb(56, 110, 152)";
+        context.fillRect(200, 150, 600, 80); 
+        context.fillStyle = "white";
+        context.font = "40px Verdana";
+        context.fillText("PRESS ENTER TO START", 250, 200);   
+        context.fillStyle = "navy";
+        context.fillText("SCORE:"+ score, 20, 40);
+        context.fillText("SPEED: " + gameSpeed, 800, 40);
+        context.fillStyle = "rgb(56, 110, 152)";
+        context.fillRect(0, 50, 1000, 10);
+        context.fillStyle = "rgb(56, 110, 152)";
+        context.fillRect(0, 450, 1000, 50);
+    }
+
+    function speed() {
+        context.fillStyle = "black";
+        context.fillRect(220, 320, 600, 80);
+        context.fillStyle = "rgb(56, 110, 152)";
+        context.fillRect(200, 300, 600, 80);
+        context.fillStyle = "white";
+        context.font = "30px Verdana";
+        context.fillText("SELECT SPEED (1-9): " + gameSpeed, 250, 355);
+    }
+
+
+    start();
+    speed();
+
+    function Player() {
+      context.drawImage(catImage, 475, 350, 100, 100)
+    }
+
+
+    function Collision(bullet, targetX, targetY, targetWidth, targetHeight) {
+        if (bullet.x > targetX &&
+            bullet.x < targetX + targetWidth &&
+            bullet.y > targetY &&
+            bullet.y < targetY + targetHeight) {
+            return true;
+        }
+        return false;
+    }
+
+
+    function resetTarget(targetNumber) {
+        if(targetNumber === 1){
+            directx1 = 1 * gameSpeed;
+            x1 = Math.random() * (canvas.width - 200);
+            y1 = firstY1;
+            directx1 = 1 * gameSpeed;
+        } else if (targetNumber === 2) {
+            x2 = Math.random() * (canvas.width - 200);
+            y2 = firstY2;
+            directx2 = 1 * gameSpeed;
+        } else if(targetNumber === 3){
+            x3 = Math.random() * (canvas.width - 200);
+            y3 = firstY3;
+            directx3 = 1 * gameSpeed;
+        }
+    }
+
+   
+    function play() {
+        if (gameover) {
+            gameOverSound.play();
+            context.drawImage(gameoverImage, 0, 0, 1000,500);           
+            context.fillStyle = "black";
+            context.fillRect(220, 210, 600, 80);
+            context.fillStyle = "rgb(56, 110, 152)";
+            context.fillRect(200, 190, 600, 80);
+            context.font = '48px Verdana';
+            context.fillStyle = 'white';
+            context.textAlign = 'center';
+            context.fillText('Game Over', canvas.width / 2, canvas.height / 2);
+            return;
+        }
+
+        context.clearRect(0, 0, canvas.width, canvas.height);
+        Player();
+
+
+        const currentTime = Date.now();
+        if (currentTime - lastColorChangeTime > colorChangeInterval) {
+            colorIndex1 = (colorIndex1 + 1) % colors.length;
+            colorIndex2 = (colorIndex2 + 1) % colors.length;
+            colorIndex3 = (colorIndex3 + 1) % colors.length;
+            lastColorChangeTime = currentTime;
+        }
+
+
+        context.fillStyle = colors[colorIndex1];
+        context.clearRect(x1, y1, 200, 20);
+        if (x1 > 800 || x1 < 0) {
+           directx1 *= -1;
+             y1+=40;
+             if(y1 >= 340){
+                 gameover = true
+             }
+        }
+        x1 += directx1;
+        context.fillRect(x1, y1, 200, 20);
+
+
+         context.fillStyle = colors[colorIndex2];
+        context.clearRect(x2, y2, 200, 20);
+        if (x2 > 800 || x2 < 0) {
+            directx2 *= -1;
+             y2+=40
+             if(y2 >= 340){
+                 gameover = true
+             }
+        }
+        x2 -= directx2;
+        context.fillRect(x2, y2, 200, 20);
+
+        context.fillStyle = colors[colorIndex3];
+          context.clearRect(x3, y3, 200, 20);
+         if (x3 > 800 || x3 < 0) {
+            directx3 *= -1;
+              y3+=40
+             if(y3 >= 360){
+                 gameover = true
+             }
+        }
+        x3 += directx3;
+        context.fillRect(x3, y3, 200, 20);
+
+        // пули
+        for (let i = 0; i < bullets.length; i++) {
+            let bullet = bullets[i];
+            context.clearRect(bullet.x, bullet.y, 10, 10);
+            bullet.y += directy4;
+            context.fillStyle = "black";
+            context.fillRect(bullet.x, bullet.y, 10, 10);
+         
+            
+              if(Collision(bullet, x1, y1, 200, 20)){
+                resetTarget(1)
+                score++;
+                bullets.splice(i, 1);
+                i--;
+          }  else if (Collision(bullet, x2, y2, 200, 20)){
+                resetTarget(2)
+                score++;
+                bullets.splice(i, 1);
+                i--;
+           }  else if (Collision(bullet, x3, y3, 200, 20)){
+                resetTarget(3)
+              score++;
+              bullets.splice(i, 1);
+              i--;
+          }
+            else if(bullet.y < 0){
+                bullets.splice(i, 1);
+                i--;
+            }
+          }
+          
+       
+
+        context.fillStyle = "navy";
+        context.fillText("SCORE:"+ score, 20, 40);
+         context.fillText("SPEED: " + gameSpeed, 800, 40);
+
+        context.fillStyle = "rgb(56, 110, 152)";
+        context.fillRect(0, 50, 1000, 10);
+        context.fillStyle = "rgb(56, 110, 152)";
+        context.fillRect(0, 450, 1000, 50);
+
+        requestAnimationFrame(play);
+    }
+
+    
+     document.addEventListener("keypress", function(event){
+        if(!gameStarted){
+            let key = event.key;
+            if(key >= "1" && key <= "9"){
+                gameSpeed = parseInt(key);
+               context.clearRect(200, 300, 600, 80);
+                context.clearRect(220, 320, 600, 80);
+                speed();
+                  start();
+            }
+             if(event.key === "Enter"){
+               gameStarted = true;
+                 context.clearRect(200, 150, 600, 80);
+                 context.clearRect(220, 170, 600, 80);
+                  context.clearRect(200, 300, 600, 80);
+                  context.clearRect(220, 320, 600, 80);
+                 resetTarget(1)
+                 resetTarget(2)
+                 resetTarget(3)
+                play();
+            }
+        }
+        else if(event.key === ' '){
+          let bullet = {
+              x: x4,
+              y: y4
+          };
+          bullets.push(bullet);
+        }
+    });
+</script>
+</html>
